@@ -1,51 +1,67 @@
-# Customer Purchasing and Segmentation Analysis
-**Status: starter project / work in progress.** Includes a working cleaning and RFM summary script. Real-data findings, charts, and retention analysis are still to be completed.
+# Customer Purchasing, Segmentation & Retention
 
-## Business question
-Which customer groups should a retailer consider for loyalty and win-back campaigns?
+A completed Python portfolio case study using **541,909 real retail transaction rows** to identify customer groups, measure repeat purchasing, and compare retention at equal cohort ages.
 
-## Dataset
-[UCI Online Retail](https://archive.ics.uci.edu/dataset/352/online+retail): UK retailer transactions from December 2010 to December 2011.
-Citation: Chen, D. (2015). Online Retail. UCI Machine Learning Repository. https://doi.org/10.24432/C5BW33
-The dataset is licensed CC BY 4.0. Download `Online Retail.xlsx` into `data/raw/`; it is not bundled here.
+**Main finding:** 1,725 loyal/recent customers (39.76% of eligible customers) account for 79.60% of recorded eligible gross purchase value. A separate 602-customer lapsed-repeat group is a candidate for a measured win-back experiment.
 
-## Run
-Use Python 3.10 or newer, then run from this repository's folder:
+## Business decision
+How should a retailer prioritize customer outreach while distinguishing past spending, repeat purchasing, and retention?
+
+## Results at a glance
+
+| Metric | Result | Scope |
+|---|---:|---|
+| Eligible purchase rows | 392,692 | After documented sequential exclusions |
+| Identified customers | 4,338 | At least one eligible purchase |
+| Distinct invoices | 18,532 | Positive, noncancellation purchases |
+| Gross purchase value | £8,887,208.89 | Refunds excluded; not net revenue |
+| Repeat purchasers | 2,845 (65.58%) | At least two invoices in observed history |
+| Month-one cohort retention | 19.94% | 616 / 3,089 customers; Jan–Oct 2011 cohorts |
+
+### Customer groups
+![Customer segments](charts/customer_segments.svg)
+
+Segments use recency and frequency with a reference date of December 10, 2011. Monetary value is measured separately. Recent means a purchase within 90 days; loyal/recent also requires at least three distinct invoices. These are transparent operational rules, not a trained predictive model.
+
+### Spending concentration
+![Purchase value by segment](charts/segment_spending.svg)
+
+The loyal/recent group accounts for £7.07m in gross purchase value. The highest-spending 44 customers (approximately the top 1%) account for 32.06% of eligible value. High past spending is not the same as future lifetime value or campaign responsiveness.
+
+### Repeat purchasing
+![Purchase frequency](charts/purchase_frequency.svg)
+
+1,493 customers have one eligible invoice. The 65.58% repeat-purchase share uses all observed history and unequal customer observation windows; it is distinct from the cohort retention metric below.
+
+### Retention at comparable ages
+![Cohort retention](charts/cohort_retention.svg)
+
+Across first-observed purchase cohorts January–October 2011, 616 of 3,089 customers purchased in the following calendar month (19.94%). December 2010 is excluded from this pooled comparison because it includes customers whose actual first purchase may predate the dataset. December 2011 is excluded from the heatmap because the source ends on December 9. Blank cells are unobserved, not zero retention.
+
+## Recommendation
+Prioritize reliable service for the loyal/recent group and test a modest win-back campaign for the 602 lapsed-repeat customers. Their observed gross spend is £676,302.49; that amount is historical spending, not recoverable revenue. Randomize outreach and compare incremental purchases and margin after campaign cost before scaling.
+
+## Explore the work
+- [Executed analysis notebook](analysis.ipynb)
+- [Detailed findings and proposed experiment](docs/findings.md)
+- [Methods and data quality](docs/methodology.md)
+- [Interview walkthrough](docs/interview-guide.md)
+- [Aggregate result tables](results/)
+- [Validation record](docs/validation.md)
+- [SQL e-commerce case study](https://github.com/raeparrishprogit/sql-ecommerce-analysis)
+
+## Reproduce
+Python 3.12 was used. From the repository folder:
+
 ```sh
 python -m pip install -r requirements.txt
-python src/analyze.py
+python download_data.py
+python build_portfolio.py
 ```
-Outputs in `results/`:
-- `quality_summary.json`: exclusions and analysis reference date.
-- `customer_rfm.csv`: one row per identified customer.
-- `segment_summary.csv`: customer counts and spending by segment.
 
-Raw and generated data are excluded from version control. Publish selected aggregate charts and findings after review.
+This downloads the original workbook, cleans it, computes RFM summaries and cohorts, checks reconciliations, and regenerates aggregate tables and charts. Open `analysis.ipynb` in Jupyter or VS Code and run all cells to rebuild its saved outputs. Customer-level output remains local and is ignored by Git.
 
-## Cleaning choices
-The script checks required fields, standardizes types, removes exact duplicate rows, and excludes invalid dates, missing identifiers, cancellation invoices, nonpositive quantities, and nonpositive prices. Exclusions are counted sequentially, so each removed row is counted once.
-Exact duplicate removal is an assumption: repeat identical invoice lines may be legitimate, so compare totals with and without deduplication before finalizing.
-Anonymous purchases are excluded from customer analysis. Positive purchase value is **gross spend**, not net sales: refunds are not subtracted and the exclusions must be disclosed.
+## Source and attribution
+Chen, D. (2015). [Online Retail, UCI Machine Learning Repository](https://archive.ics.uci.edu/dataset/352/online+retail). [DOI: 10.24432/C5BW33](https://doi.org/10.24432/C5BW33). Licensed [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Downloaded October 1, 2026. Source transactions span December 1, 2010–December 9, 2011; figures describe that historical extract.
 
-## RFM definitions
-- Recency: days since the customer's last eligible purchase, measured from one day after the latest valid transaction date in the source.
-- Frequency: number of distinct eligible invoices.
-- Monetary value: sum of eligible quantity times unit price, in GBP.
-
-Illustrative segments are evaluated in this order:
-1. Loyal / recent: recency <= 90 days and frequency >= 3.
-2. Lapsed repeat: recency > 90 days and frequency >= 2.
-3. Recent occasional: recency <= 90 days.
-4. Other / lapsed: everyone else.
-
-These are transparent starting rules, not validated marketing thresholds. Monetary value is summarized but does not define the initial segments. Compare thresholds and investigate high-spend customers before making recommendations.
-
-## Finish the portfolio case study
-1. Run the script against the downloaded workbook.
-2. Review exclusion counts and reconcile eligible spending.
-3. Compare customer counts and spending across segments.
-4. Create three charts: segment sizes, segment spending, and purchase-frequency distribution.
-5. Add a monthly cohort retention analysis as an extension; compare cohorts only at equally observed ages.
-6. Complete [the findings worksheet](docs/findings.md), then add verified findings and charts to this README.
-
-Suggested campaign ideas are hypotheses for testing. This historical dataset alone cannot establish campaign lift, current customer value, or causes of inactivity.
+Prepared with AI assistance; calculations were executed and checked against the full source workbook. This is an independent portfolio case study, not evidence of a deployed campaign or realized business impact.

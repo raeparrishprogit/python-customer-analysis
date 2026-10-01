@@ -1,0 +1,13 @@
+segment,customers,gross_spend_gbp,recency_cutoff_days
+Lapsed repeat,903,1112948.372,60
+Loyal / recent,1532,6724110.471,60
+Other / lapsed,1059,459056.291,60
+Recent occasional,844,591093.76,60
+Lapsed repeat,602,676302.491,90
+Loyal / recent,1725,7073910.842,90
+Other / lapsed,847,356239.8,90
+Recent occasional,1164,780755.761,90
+Lapsed repeat,443,489646.731,120
+Loyal / recent,1825,7215592.982,120
+Other / lapsed,777,328512.98,120
+Recent occasional,1293,853456.201,120

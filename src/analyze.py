@@ -6,14 +6,15 @@ import pandas as pd
 ROOT = Path(__file__).resolve().parents[1]
 REQUIRED = ["InvoiceNo", "StockCode", "Quantity", "InvoiceDate", "UnitPrice", "CustomerID"]
 
-def analyze(raw):
+def clean_purchases(raw, deduplicate=True):
     missing = set(REQUIRED) - set(raw.columns)
     if missing:
         raise ValueError(f"Missing required columns: {sorted(missing)}")
     df = raw.copy()
     quality = {"input_rows": len(df)}
-    quality["exact_duplicate_rows_removed"] = int(df.duplicated().sum())
-    df = df.drop_duplicates().copy()
+    quality["exact_duplicate_rows_removed"] = int(df.duplicated().sum()) if deduplicate else 0
+    if deduplicate:
+        df = df.drop_duplicates().copy()
     for col in ("InvoiceNo", "CustomerID"):
         df[col] = df[col].astype("string").str.strip().replace("", pd.NA)
     df["InvoiceDate"] = pd.to_datetime(df["InvoiceDate"], errors="coerce")
@@ -37,6 +38,10 @@ def analyze(raw):
     if df.empty:
         raise ValueError("No eligible purchases remain after cleaning.")
     df["purchase_value_gbp"] = df["Quantity"] * df["UnitPrice"]
+    return df, quality, reference
+
+def analyze(raw):
+    df, quality, reference = clean_purchases(raw)
     rfm = df.groupby("CustomerID").agg(
         last_purchase=("InvoiceDate", "max"),
         frequency=("InvoiceNo", "nunique"),
